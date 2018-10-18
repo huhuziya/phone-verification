@@ -1,0 +1,42 @@
+
+    <view class="container">
+        <button class="button" bindtap="showPop">点击发送</button> 
+        
+    <view class="component--verification-pop" wx:if="{{isShowPop}}">
+		<view class="modal-bg" bindtap="$Pop$close"/>
+		<view class="modal-wrap">
+            
+		    <view class="head">
+                <view class="title">验证手机号确认课程安排</view>
+                <view class="desc">避免冒领占用学习名额，影响您的实训体验</view>
+            </view>            
+
+		    <view class="phone-number">
+                <view class="number-title">
+                    <span class="phone-title">手机号</span>
+                    <span class="phone-desc"  wx:if="{{$Pop$phoneErr}}">请输入正确的11位手机号码</span>
+                    <span class="phone-desc"  wx:elif="{{$Pop$phoneStatus}}">{{$Pop$errMsg}}</span>
+                </view>
+                <view class="number-content">
+                    <input placeholder="请输入中国大陆手机号" type="number" maxlength="11" class="numtext" value="{{$Pop$phoneNum}}" bindinput="$Pop$inputPhoneNum"/>
+                    <view wx:if="{{$Pop$send||$Pop$phoneStatus}}" class="sendMsg" hover-class="active" bindtap="$Pop$sendMsg" data-wpysendmsg-a="">获取验证码</view>     
+                    <view wx:else class="remain">{{$Pop$second+"s"}}</view>       
+                </view>
+            </view>
+
+		    <view class="phone-code">
+                <view class="code-title">
+                    <span class="num-title">验证码</span>
+                    <span class="num-desc" wx:if="{{$Pop$codeStatus}}">验证码有误请重新获取</span>
+                    </view>       
+                    <view class="number-content">
+                        <input class="content-block" wx:for="{{$Pop$inputLen}}" wx:key="{{index}}" type="number" disabled value="{{ $Pop$iptValue.length >= index+1 ? $Pop$iptValue[index] : '' }}" bindtap="$Pop$onFocus"/>
+                    </view>
+                    <input class="invisible" type="number" name="password" password="{{$Pop$true}}" maxlength="{{$Pop$inputLen}}" focus="{{$Pop$isFocus}}" bindinput="$Pop$setCode" bindblur="$Pop$blurFocus"/>
+            </view>
+		    <button class="button" wx:if="{{$Pop$isSubmit}}" bindtap="$Pop$onSubmit">提交验证</button>            
+		    <button class="button-disabled" wx:else disabled>提交验证</button>            
+		</view>
+    </view>
+
+    </view>
