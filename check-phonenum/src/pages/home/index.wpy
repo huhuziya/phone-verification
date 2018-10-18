@@ -1,0 +1,83 @@
+<template>
+    <view class="container">
+        <button class="button" @tap="showPop">点击发送</button> 
+        <Pop 
+            wx:if="{{isShowPop}}"
+            :errMsg.sync="errMsg"    
+            :phoneStatus.sync="phoneStatus"
+            :codeStatus.sync="codeStatus"
+        ></Pop>
+    </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Pop from './components/pop'
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '手机短信验证'
+    }
+    components = {
+        Pop,
+    }
+
+    data = {
+        isShowPop:true,
+        errMsg:'',
+        phoneStatus:false,
+        codeStatus:false,
+    }
+
+    computed = {
+
+    }
+
+    methods = {
+        showPop(){
+            this.isShowPop = true
+            this.$apply()
+        }
+    }
+
+    events = {
+        closeModal(){
+            this.isShowPop = false
+            this.$apply()
+        }
+    }
+
+    onLoad() {
+
+    }
+  }
+</script>
+<style lang="scss">
+
+@function rpx($px) {
+  @return $px + rpx;
+}
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    background-color: #fff;
+
+    .button{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;        
+        align-items: center;
+        position: fixed;
+        left: 50%;
+        bottom: rpx(20);
+        transform: translate(-50%,0);
+        width: 80%;
+        height: rpx(120);
+        background-color: burlywood;
+    }
+}
+</style>
