@@ -1,0 +1,13 @@
+{
+  "description": "手机短信验证",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram",
+  "appid": "wx3ace23c744d122aa",
+  "projectname": "check-phonenum",
+  "miniprogramRoot": "./dist"
+}

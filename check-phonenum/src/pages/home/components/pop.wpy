@@ -1,0 +1,397 @@
+<template>
+    <view class="component--verification-pop">
+		<view class="modal-bg" @tap="close"></view>
+		<view class="modal-wrap">
+            
+		    <view class="head">
+                <view class="title">验证手机号确认课程安排</view>
+                <view class="desc">避免冒领占用学习名额，影响您的实训体验</view>
+            </view>            
+
+		    <view class="phone-number">
+                <view class="number-title">
+                    <span class="phone-title">手机号</span>
+                    <span class="phone-desc" wx:if="{{phoneErr}}">请输入正确的11位手机号码</span>
+                    <span class="phone-desc" wx:elif="{{phoneStatus}}">{{errMsg}}</span>
+                </view>
+                <view class="number-content">
+                    <input placeholder="请输入中国大陆手机号" type="number" maxlength="11" class="numtext" value="{{phoneNum}}" bindinput="inputPhoneNum"/>
+                    <view 
+                        wx:if="{{send||phoneStatus}}" 
+                        class="sendMsg" 
+                        hover-class="active" 
+                        @tap="sendMsg()"
+                    >获取验证码</view>     
+                    <view 
+                        wx:else
+                        class="remain" 
+                    >{{second+"s"}}</view>       
+                </view>
+            </view>
+
+		    <view class="phone-code">
+                <view class="code-title">
+                    <span class="num-title">验证码</span>
+                    <span class="num-desc" wx:if="{{codeStatus}}">验证码有误请重新获取</span>
+                    </view>       
+                    <view class="number-content">
+                        <input 
+                            class="content-block" 
+                            wx:for="{{inputLen}}"
+                            wx:key="{{index}}" 
+                            type="number"
+                            disabled
+                            value="{{ iptValue.length >= index+1 ? iptValue[index] : '' }}"
+                            bindtap="onFocus"
+                        />
+                    </view>
+                    <input 
+                        class="invisible" 
+                        type="number"
+                        name="password" 
+                        password="{{true}}" 
+                        maxlength="{{inputLen}}" 
+                        focus="{{isFocus}}"
+                        bindinput="setCode"
+                        bindblur="blurFocus"
+                    />
+            </view>
+		    <button class="button" wx:if="{{isSubmit}}" bindtap="onSubmit">提交验证</button>            
+		    <button class="button-disabled" wx:else disabled>提交验证</button>            
+		</view>
+    </view>
+</template>
+
+<script>
+import wepy from "wepy";
+
+export default class extends wepy.component {
+    data = {
+            send: true,
+            phoneErr:false,
+            isOccupy:false,
+            codeErr:false,
+            isSubmit:false,
+            isFocus:false,
+            second: 60,
+            inputLen:6,
+            phoneNum: '',
+            iptValue:'',
+            timer:null,
+    };
+
+    props = {
+        errMsg:{
+            type:String,
+            default:'',
+        },
+        phoneStatus:{
+            type:Boolean,
+            default:false,
+        },
+        codeStatus:{
+            type:Boolean,
+            default:false,
+        }
+    };
+
+    components = {};
+
+    computed = {};
+
+    methods = {
+        close() {
+            this.$emit("closeModal");
+        },
+        inputPhoneNum(e) {
+            this.phoneNum = e.detail.value
+            this.$apply()
+            
+            if(this.codeStatus){
+                this.isSubmit = false
+            }
+
+            if (this.phoneNum.length === 11 && this.iptValue.length === 6) {
+                this.isSubmit = true
+            } else {
+                this.isSubmit = false
+            }
+            this.$apply()
+        },
+        sendMsg() {
+
+            this.second = 60
+            this.$apply()
+            
+            clearInterval(this.timer)
+
+            let str = /^1\d{10}$/
+            if(this.phoneNum.length === 11){
+
+                if (str.test(this.phoneNum)) {
+                    
+                    //手机正则验证通过
+                    this.phoneErr = false
+                    this.send = false
+                    this.$apply()
+                    this.$emit('postPhoneNum',this.phoneNum)
+
+                }else{
+                    //手机正则验证不通过
+                    this.phoneErr = true
+                    this.send = true
+                    this.$apply()
+                }
+
+            }else{
+                this.phoneErr = true
+                this.send = true
+                this.$apply()
+            }
+
+            this.timer = setInterval(() => {
+                this.second = this.second - 1
+                this.$apply()
+
+                if(this.second <= 0){
+                    this.second = 60
+                    this.send = true
+                    this.$apply()
+                }
+                if(this.second === 60){
+                    clearInterval(this.timer)
+                    this.$apply()
+                }
+            }, 1000)
+            this.$apply()
+        },
+        onFocus(){
+            this.isFocus = true
+            this.$apply()
+        },
+        blurFocus(){
+            this.isFocus = false
+            this.$apply()
+        },
+        setCode(e){
+            this.iptValue = e.detail.value
+            this.$apply()
+
+            if(this.codeStatus){
+                this.isSubmit = false
+            }
+            if (this.phoneNum.length === 11 && this.iptValue.length === 6) {
+                this.isSubmit = true
+            } else {
+                this.isSubmit = false
+            }
+            this.$apply()
+        },
+        onSubmit() {
+            this.$emit('postCaptcha',this.iptValue)
+            this.send = true
+            clearInterval(this.timer)
+            this.timer = null
+            this.second = 60
+            this.$apply()
+        }
+    };
+
+    onShow() {}
+
+    onLoad() {}
+}
+</script>
+
+<style lang="scss">
+
+@function rpx($px) {
+  @return $px + rpx;
+}
+
+.component--verification-pop {
+  .modal-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+  }
+
+  .modal-wrap {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: fixed;
+    top: rpx(67);
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: rpx(12);
+    padding: 0 rpx(45);
+    width: rpx(690);
+    height: rpx(828);
+    background-color: #ffffff;
+    box-sizing:border-box;
+
+    .head{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .title{
+            margin-top: rpx(61);
+            font-size: rpx(40);
+            font-weight: 600;
+            letter-spacing: rpx(1.5);
+            color: #272626;
+        }
+        .desc{
+            margin-top: rpx(24);
+            font-size: rpx(28);
+            color: #8f8a8a;
+        }
+
+    }
+    .phone-number{
+        display: flex;
+        flex-direction: column;
+
+        .number-title{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: rpx(35);
+
+            .phone-title{
+                margin-right: rpx(12);
+                font-size: rpx(28);
+                font-weight: 600;
+                color: #423e3e;
+            }
+            .phone-desc{
+                font-size: rpx(24);
+                color: #d93344;
+            }
+        }
+        .number-content{
+            display: flex;
+            flex-direction: row;
+            margin-top: rpx(24);
+            font-size: rpx(30);
+            
+            .numtext{
+                margin-right: rpx(20);
+                padding-left: rpx(18);
+                width: rpx(380);
+                height: rpx(96);
+                border-radius: rpx(8);
+                border: solid rpx(2) #cccccc;
+                background-color: #ffffff;
+                color: #423e3e;
+            }
+            .sendMsg{
+                width: rpx(200);
+                height: rpx(96);
+                color: #fff;
+                border-radius: rpx(8);
+                background-color: #ff5365;
+                text-align: center;
+                line-height: rpx(96);
+            }
+            .active{
+                background-color: #d43d4d;
+            }
+            .remain{
+                width: rpx(200);
+                height: rpx(96);
+                border-radius: rpx(8);
+                background-color: #cfcfcf;
+                font-weight: 600;
+                color: #ffffff;
+                text-align: center;
+                line-height: rpx(96);
+            }
+        }
+      
+    }
+    .phone-code{
+        display: flex;
+        flex-direction: column;
+
+        .code-title{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-top: rpx(64);
+
+            .num-title{
+                margin-right: rpx(12);
+                font-size: rpx(28);
+                font-weight: 600;
+                color: #423e3e;
+            }
+            .num-desc{
+                font-size: rpx(24);
+                color: #d93344;
+            }
+        }
+        .number-content{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin-top: rpx(24);
+
+            .content-block{
+                width: rpx(72);
+                height: rpx(96);
+                border-radius: rpx(8);
+                border: solid rpx(2) #cccccc;
+                background-color: #fafafa;
+                font-size: rpx(40);
+                font-weight: 600;
+                color: #423e3e;
+                text-align: center;
+            }
+        }
+        .invisible{
+            height: rpx(0);
+            width: rpx(0);
+            border:none;
+            margin:0;
+        }
+    }
+    .button{
+        margin-top: rpx(20);
+        width: rpx(600);
+        height: rpx(100);
+        border-radius: rpx(8);
+        background-image: linear-gradient(to left, #5ec1f8, #308ded);
+        font-size: rpx(36);
+        font-weight: 600;
+        line-height: rpx(100);
+        color: #ffffff;
+        text-align: center;
+    }
+    .button-disabled{
+        margin-top: rpx(20);
+        width: rpx(600);
+        height: rpx(100);
+        opacity: 0.3;
+        border-radius: rpx(8);
+        background-image: linear-gradient(to left, #5ec1f8, #308ded);
+        font-size: rpx(36);
+        font-weight: 600;
+        line-height: rpx(100);
+        color: #ffffff;
+        text-align: center;
+    }
+
+  }
+}
+</style>
